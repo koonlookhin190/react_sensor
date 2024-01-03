@@ -1,7 +1,7 @@
 #root {
   padding: 1rem; /* Adjust padding for smaller screens */
   text-align: center;
-  height: 100vh;
+  height: 80vh;
 }
 
 /* .logo {
@@ -77,4 +77,20 @@ h1, p {
 .icon {
   height: 50px;
   width: 50px;
+}
+/* .progress-container {
+  width: 40px;
+  height: 40px;
+} */
+
+.progress-svg {
+  transform: rotate(-90deg); 
+  width: 100px;
+  height: 100px;
+}
+
+.progress-circle {
+  transition: stroke-dashoffset 0.5s;
+  transform-origin: center;
+  transform: rotate(-90deg);
 }

@@ -12,6 +12,7 @@
   "dependencies": {
     "firebase": "^10.7.1",
     "react": "^18.2.0",
+    "react-circular-progressbar": "^2.1.0",
     "react-dom": "^18.2.0",
     "react-native-sensors": "^7.3.6",
     "react-toastify": "^9.1.3"

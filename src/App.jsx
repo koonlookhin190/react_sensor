@@ -3,23 +3,39 @@ import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import playIcon from "./assets/play.png";
 import pauseIcon from "./assets/pause.png";
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
+import { initializeApp } from "firebase/app";
+import { getAnalytics,logEvent } from "firebase/analytics";
 
 function App() {
   const [isSensorActive, setIsSensorActive] = useState(false);
   const [acceleration, setAcceleration] = useState({ x: 0, y: 0, z: 0 });
   const [gyroscope, setGyroscope] = useState({ alpha: 0, beta: 0, gamma: 0 });
-  const [holdTimeout, setHoldTimeout] = useState(null);
+  // const [holdTimeout, setHoldTimeout] = useState(null);\
+  const [countdownTime, setCountdownTime] = useState(15);
+  const percentage = (15 - countdownTime) / 15 * 100
+  const firebaseConfig = {
+    apiKey: "AIzaSyByXEa5y7959i0iHVyJHeePTYXsridX7hk",
+    authDomain: "motion-945f3.firebaseapp.com",
+    projectId: "motion-945f3",
+    storageBucket: "motion-945f3.appspot.com",
+    messagingSenderId: "1043008701393",
+    appId: "1:1043008701393:web:327291b2ba62fed6e456f0",
+    measurementId: "G-4GNZY7LPGZ"
+  };
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
   useEffect(() => {
     let sensorEventListener;
-
+    let countdownInterval;
+    let isShaking
     const startSensor = () => {
       sensorEventListener = (event) => {
-        console.log(event);
         if (event.rotationRate instanceof DeviceMotionEventRotationRate) {
-          console.log("Test");
           setGyroscope({
             alpha: event.rotationRate.alpha.toFixed(2),
             beta: event.rotationRate.beta.toFixed(2),
@@ -38,25 +54,40 @@ function App() {
           });
         }
         const shakeThreshold = 15;
-        const isShaking =
+        isShaking =
           Math.abs(event.accelerationIncludingGravity.x) > shakeThreshold ||
           Math.abs(event.accelerationIncludingGravity.y) > shakeThreshold ||
           Math.abs(event.accelerationIncludingGravity.z) > shakeThreshold;
 
-        // if (isShaking && holdTimeout !== null) {
-        //     clearTimeout(holdTimeout); 
-        //     showNotification('Device is shaking!');
-        // }
-        if (isShaking) {
-          showNotification('Device is shaking!');
-         }
       };
 
       window.addEventListener("devicemotion", sensorEventListener);
+
+      countdownInterval = setInterval(() => {
+        setCountdownTime((prevTime) => {
+          if (prevTime === 1) {
+            clearInterval(countdownInterval);
+            setIsSensorActive(false);
+           
+            if (isShaking && prevTime===1) {
+              showNotification('you are shaking.');
+            }
+            else{
+              showNotification('good you not shaking.');
+            }
+            return 15;
+          } else {
+            return prevTime - 1;
+          }
+        });
+      }, 1000);
+      logEvent(analytics,'sensor_started');
     };
 
     const stopSensor = () => {
       window.removeEventListener("devicemotion", sensorEventListener);
+      clearInterval(countdownInterval);
+      logEvent(analytics,'sensor_stoped');
     };
 
     // if (isSensorActive) {
@@ -69,9 +100,9 @@ function App() {
     //   stopSensor();
     //   clearTimeout(holdTimeout);
     // }
-    if(isSensorActive){
+    if (isSensorActive) {
       startSensor();
-    }else{
+    } else {
       stopSensor();
     }
     return () => {
@@ -99,7 +130,7 @@ function App() {
     <>
       <div className="container">
         <h1>Examine Motion</h1>
-        <div>
+        {/* <div>
           <p>Acceleration:</p>
           <br />
           <p>X: {acceleration.x}</p>
@@ -119,7 +150,18 @@ function App() {
           <p>Beta: {gyroscope.beta}</p>
           <br />
           <p>Gamma: {gyroscope.gamma}</p>
-        </div>
+        </div> */}
+
+          {/* <svg class="progress-svg">
+            <circle class="progress-circle" cx="50" cy="50" r="30" fill="transparent" stroke="white"/>
+          </svg> */}
+          <div style={{width:200,height:200,marginTop:40,marginBottom:40}}>
+          <CircularProgressbar value={percentage} text={`${countdownTime}`} styles={buildStyles({
+              textColor: "#ffbe98",
+              pathColor: "#ffbe98",
+              trailColor:"white"
+             })} />
+          </div>
 
         <div className="button" onClick={toggleSensor}>
           {isSensorActive ? (
